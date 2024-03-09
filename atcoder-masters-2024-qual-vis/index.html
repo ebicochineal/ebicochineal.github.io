@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="description" content="emscripten-e512w3d">
+        <title>emscripten-e512w3d</title>
+        <style>
+            body {
+                -webkit-user-select : none;
+                -moz-user-select : none;
+                -ms-user-select : none;
+                -o-user-select : none;
+                user-select : none;
+            }
+        </style>
+        <script src="e512w3d.js"></script>
+        <script>
+            function CanvasStyleResize () {
+                e512w3d_canvas = document.getElementById('e512w3d-canvas');
+                e512w3d_ctx = e512w3d_canvas.getContext('2d');
+                e512w3d_canvas.style.imageRendering = "pixelated";
+                e512w3d_canvas.style.width = document.documentElement.clientWidth + "px";
+                e512w3d_canvas.style.height = document.documentElement.clientWidth/2 + "px";
+                e512w3d_canvas.style.width = document.documentElement.clientWidth + "px";
+                e512w3d_canvas.style.height = document.documentElement.clientWidth/2 + "px";
+            }
+            window.onresize = CanvasStyleResize;
+            window.onload = CanvasStyleResize;
+            
+        </script>
+    </head>
+    <body style="margin:0; overscroll-behavior-y: none; touch-action: manipulation;">
+        <a href="https://atcoder.jp/contests/masters-qual" target="_blank">第一回マスターズ選手権-予選-</a>のエビジュアライザです</br>
+        入力と出力をテキストエリアに貼り付けて巨大なエビの絵をクリックしてください。</br>
+        Input:</br>
+        <textarea id="e512w3d-textarea1" rows="6" style="width:50%; resize:vertical; min-height:64px;"></textarea>
+        </br>
+        Output:</br>
+        <textarea id="e512w3d-textarea2" rows="6" style="width:50%; resize:vertical; min-height:64px;"></textarea>
+        <canvas id="e512w3d-canvas"></canvas>
+        <p>・<a href="https://github.com/ebicochineal/E512W3D" target="_blank">E512W3D</a></p>
+    </body>
+</html>

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="description" content="emscripten-e512w3d">
+        <title>emscripten-e512w3d</title>
+        <style>
+            body {
+                -webkit-user-select : none;
+                -moz-user-select : none;
+                -ms-user-select : none;
+                -o-user-select : none;
+                user-select : none;
+            }
+        </style>
+        <script src="e512w3d.js"></script>
+        <script>
+            function CanvasStyleResize () {
+                e512w3d_canvas = document.getElementById('e512w3d-canvas');
+                e512w3d_ctx = e512w3d_canvas.getContext('2d');
+                e512w3d_canvas.style.imageRendering = "pixelated";
+                e512w3d_canvas.style.width = document.documentElement.clientWidth + "px";
+                e512w3d_canvas.style.height = document.documentElement.clientWidth/2 + "px";
+                e512w3d_canvas.style.width = document.documentElement.clientWidth + "px";
+                e512w3d_canvas.style.height = document.documentElement.clientWidth/2 + "px";
+            }
+            window.onresize = CanvasStyleResize;
+            window.onload = CanvasStyleResize;
+        </script>
+    </head>
+    <body style="margin:0; overscroll-behavior-y: none; touch-action: manipulation;">
+        <a href="https://atcoder.jp/contests/masters2025-qual" target="_blank">第二回マスターズ選手権-予選-</a>のエビジュアライザです</br>
+        
+        Directory:
+        <input type="file"
+            webkitdirectory
+            onChange="fileListDirectory(this.files, 'dirSelect')">
+        <div id="dirSelect"></div>
+        ┝in (inA, inB, inCはinにリネームする必要があります)</br>
+        └out</br>
+        
+        FileIndex:
+        <input type="number" id="seed" value="0" min="0" max="18446744073709551615" onchange="seedChange()"/>
+        </br></br>
+        
+        Input:
+        <input type="file" id="inputfile" name="inputfile" accept="text/plain"/>
+        </br>
+        <textarea id="e512w3d-textarea1" rows="3" style="width:50%; resize:vertical; min-height:64px;"  onchange="inputChange()">20 1
+..a.@....a.....a....
+..@........@..a.@a@.
+..aa...a..@.....a...
+.............a.....@
+.....@.a.....a@@....
+..a..a@..a......@...
+.@a.@aa...........a@
+...............@.a..
+.a......@@@.a.......
+........@.@..a.....a
+.a.A..a....@....a..@
+......@..@@.........
+..@@....a..@@.a.....
+......a.....@..a....
+...................a
+@@.....@....a.a.a...
+.....@.......a...@..
+...@......@...a....a
+............a..@....
+.......a.@..........
+</textarea>
+        </br>
+        Output:
+        <input type="file" id="outputfile" name="outputfile" accept="text/plain"/>
+        </br>
+        <textarea id="e512w3d-textarea2" rows="3" style="width:50%; resize:vertical; min-height:64px;" onchange="outputChange()">1 L
+1 L
+3 R
+1 R
+1 R
+1 D
+1 D
+3 U
+1 R
+1 R
+1 R
+1 U
+1 U
+3 L
+1 D
+1 D
+1 D
+2 L
+2 L
+2 L
+3 U
+1 L
+1 L
+1 U
+1 U
+1 U
+1 U
+1 U
+2 R
+2 R
+3 D
+1 L
+1 U
+1 U
+2 R
+3 D
+1 R
+1 R
+2 D
+2 L
+2 L
+3 D
+1 L
+1 U
+1 U
+2 U
+2 R
+3 D
+1 U
+1 U
+3 D
+1 L
+2 R
+3 D
+1 R
+1 R
+1 D
+1 D
+1 D
+2 L
+2 L
+3 D
+1 R
+1 R
+1 R
+1 D
+2 L
+2 U
+2 L
+2 L
+3 D
+1 R
+1 R
+1 R
+1 R
+1 U
+2 U
+2 L
+2 L
+2 L
+2 L
+3 D
+1 L
+1 U
+1 U
+1 U
+2 R
+3 D
+1 R
+1 R
+1 R
+1 R
+1 D
+1 D
+2 L
+2 L
+2 L
+2 L
+3 D
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 D
+1 D
+1 D
+2 D
+2 D
+2 L
+2 L
+2 D
+2 D
+2 D
+3 L
+1 R
+1 D
+1 D
+2 U
+2 U
+3 L
+1 R
+1 R
+1 R
+3 L
+1 R
+1 U
+1 U
+2 D
+2 D
+3 L
+1 R
+1 U
+2 D
+3 L
+1 R
+1 D
+1 D
+2 U
+2 U
+3 L
+1 R
+1 R
+3 L
+1 L
+1 D
+1 D
+1 D
+2 U
+2 U
+2 U
+3 L
+1 R
+1 R
+1 R
+1 R
+3 L
+1 U
+2 D
+3 L
+1 L
+1 L
+1 U
+1 U
+1 U
+2 D
+2 D
+2 D
+3 L
+1 L
+1 D
+1 D
+1 D
+1 D
+1 D
+2 U
+2 U
+2 U
+2 U
+2 U
+3 L
+1 L
+1 L
+1 D
+1 D
+1 D
+1 D
+1 D
+2 U
+2 U
+2 U
+2 U
+2 U
+3 L
+1 L
+1 L
+1 D
+1 D
+1 D
+1 D
+1 D
+2 U
+2 R
+2 U
+2 U
+2 U
+2 U
+3 L
+1 D
+1 D
+1 D
+1 D
+1 D
+1 D
+2 U
+2 U
+2 U
+2 U
+2 U
+2 U
+3 L
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+3 L
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+3 L
+1 L
+1 L
+1 L
+1 L
+1 L
+1 L
+1 L
+1 L
+1 L
+1 L
+1 D
+1 D
+1 D
+1 D
+1 D
+1 D
+1 D
+3 U
+1 R
+1 R
+1 R
+1 R
+1 D
+1 D
+2 L
+2 L
+2 L
+2 L
+3 U
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 U
+2 U
+2 U
+2 U
+2 U
+2 R
+2 U
+2 U
+2 U
+2 U
+3 L
+1 R
+1 D
+1 D
+1 D
+1 D
+1 D
+1 D
+1 D
+2 U
+2 U
+2 U
+2 U
+2 U
+2 U
+2 U
+3 L
+1 R
+1 R
+1 R
+1 R
+1 U
+1 U
+1 U
+1 U
+2 D
+2 D
+2 D
+2 D
+3 L
+1 R
+1 D
+1 D
+1 D
+1 D
+2 U
+2 U
+2 U
+2 U
+3 L
+1 D
+1 D
+1 D
+1 D
+1 D
+1 D
+1 D
+2 U
+2 U
+2 U
+2 U
+2 U
+2 U
+2 U
+3 L
+1 L
+1 L
+1 L
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+2 R
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+3 L
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+3 L
+1 L
+1 L
+1 L
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+2 D
+2 D
+2 L
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+3 L
+1 L
+1 L
+1 L
+1 L
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+1 U
+2 D
+2 L
+2 L
+2 L
+2 L
+2 L
+2 L
+3 D
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 R
+1 U
+2 D
+2 D
+2 D
+2 L
+2 L
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+2 D
+3 L
+</textarea>
+        
+        </br>
+        
+        <div hidden>
+            Debug:
+            <input type="file" id="debugfile" name="debugfile" accept="text/plain"/>
+            </br>
+            <textarea id="e512w3d-textarea3" rows="3" style="width:50%; resize:vertical; min-height:64px;" onchange="debugChange()"></textarea>
+        </div>
+        
+        
+        <canvas id="e512w3d-canvas"></canvas>
+        <p>・<a href="https://github.com/ebicochineal/E512W3D" target="_blank">E512W3D</a></p>
+        
+    </body>
+    
+    <script>
+        var gem_files = [];
+        
+        var gem_inchange = false;
+        var gem_outchange = false;
+        var gem_debugchange = false;
+        var gem_in_files = [];
+        var gem_out_files = [];
+        var gem_debug_files = [];
+        var gem_is_in_load = 0;
+        var gem_load_in_text = "";
+        var gem_is_out_load = 0;
+        var gem_load_out_text = "";
+        var gem_is_debug_load = 0;
+        var gem_load_debug_text = "";
+        
+        
+        function seedChange () {
+            a = document.getElementById('seed');
+            fin = null;
+            fout = null;
+            fdebug = null;
+            for (let i = 0; i < gem_in_files.length; ++i) {
+                if (gem_in_files[i].name.split('.')[0] == a.value) { fin = gem_in_files[i] }
+            }
+            for (let i = 0; i < gem_out_files.length; ++i) {
+                if (gem_out_files[i].name.split('.')[0] == a.value) { fout = gem_out_files[i] }
+            }
+            for (let i = 0; i < gem_debug_files.length; ++i) {
+                if (gem_debug_files[i].name.split('.')[0] == a.value) { fdebug = gem_debug_files[i] }
+            }
+            if (fin != null && fout != null) {
+                fileLoadInput(fin);
+                fileLoadOutput(fout);
+                if (fdebug != null) { fileLoadDebug(fdebug); }
+            }
+        }
+        
+        function fileListDirectory (files, bid) {
+            gem_files = files;
+            gem_in_files = [];
+            gem_out_files = [];
+            gem_debug_files = [];
+            for (i=0; i<files.length; i++) {
+                path = files[i].webkitRelativePath
+                name = files[i].name.split('.')[0]
+                if ("text/plain" != files[i].type) { continue; }
+                if (isNaN(name)) { continue; }
+                if (path.indexOf('/in/') >= 0) { gem_in_files.push(files[i]); }
+                if (path.indexOf('/out/') >= 0) { gem_out_files.push(files[i]); }
+                if (path.indexOf('/debug/') >= 0) { gem_debug_files.push(files[i]); }
+                
+            }
+            seedChange();
+        }
+        
+        function fileLoadInput (f) {
+            gem_is_in_load = 0;
+            gem_load_in_text = "";
+            let infr = new FileReader();
+            infr.addEventListener('load', function (e) {
+                gem_is_in_load = 1;
+                gem_load_in_text = e.target.result.replace("\r", "");
+                document.getElementById("e512w3d-textarea1").value = e.target.result.replace("\r", "");
+                inputChange();
+            });
+            infr.readAsText(f);
+        }
+        
+        function fileLoadOutput (f) {
+            gem_is_out_load = 0;
+            gem_load_out_text = "";
+            let fr = new FileReader();
+            fr.addEventListener('load', function (e) {
+                gem_is_out_load = 1;
+                document.getElementById("e512w3d-textarea2").value = e.target.result.replace("\r", "");
+                outputChange();
+            });
+            fr.readAsText(f);
+        }
+        
+        function fileLoadDebug (f) {
+            gem_is_debug_load = 0;
+            gem_load_debug_text = "";
+            let fr = new FileReader();
+            fr.addEventListener('load', function (e) {
+                gem_is_debug_load = 1;
+                document.getElementById("e512w3d-textarea3").value = e.target.result.replace("\r", "");
+                debugChange();
+            });
+            fr.readAsText(f);
+        }
+        function inputChange () {
+            gem_load_in_text = document.getElementById("e512w3d-textarea1").value;
+            gem_inchange = true;
+        }
+        function outputChange () {
+            gem_load_out_text = document.getElementById("e512w3d-textarea2").value;
+            gem_outchange = true;
+        }
+        function debugChange () {
+            gem_load_debug_text = document.getElementById("e512w3d-textarea3").value;
+            gem_debugchange = true;
+        }
+        
+        document.getElementById('inputfile').addEventListener('change', function (e) { fileLoadInput(e.target.files[0])} );
+        document.getElementById('outputfile').addEventListener('change', function (e) { fileLoadOutput(e.target.files[0])} );
+        document.getElementById('debugfile').addEventListener('change', function (e) { fileLoadDebug(e.target.files[0])} );
+        
+        inputChange();
+        outputChange();
+    </script>
+    
+    
+</html>

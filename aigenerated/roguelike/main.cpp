@@ -140,6 +140,7 @@ static DmgText  dtxts[MAX_DMG_TXT];
 
 static int   input_cd=0;
 static int   spell_cd[4]={0,0,0,0};   // Z, X, C, V
+static int   selected_spell=0;         // 右クリックで選択中の魔法 (0-3)
 static int   cursor_blink=0;
 
 static int screen_shake=0, g_shake_x=0, g_shake_y=0;
@@ -315,7 +316,9 @@ void giveXP() {
     if(pxp >= pxp_next){
         pxp=0; plevel++; pxp_next=plevel*5;
         phmax+=5; php=phmax;
-        addMsg("SYSTEM OVERDRIVE: LEVEL UP!!!");
+        char lubuf[56];
+        sprintf(lubuf, "Lv%d! Max HP+5 -> HP %d/%d", plevel, php, phmax);
+        addMsg(lubuf);
         level_up_timer = 60;
         screen_shake = 15;
         spawnExplosion(px, py, 4, C(255,255,0), C(200,100,0));
@@ -349,8 +352,9 @@ bool tryMove(int dx, int dy){
         if(enemies[i].hp<=0){
             enemies[i].alive=false;
             spawnExplosion(nx, ny, 2, C(255,0,0), C(100,0,0));
-            char kbuf[24];
-            sprintf(kbuf, "%s SLAIN!", sp[enemies[i].type].name);
+            char kbuf[56];
+            if(crit) sprintf(kbuf, "CRIT! %s hit for %d -> KILLED!", sp[enemies[i].type].name, dmg);
+            else     sprintf(kbuf, "%s hit for %d -> KILLED!", sp[enemies[i].type].name, dmg);
             addMsg(kbuf);
             screen_shake = 5;
             // アイテムドロップ 25%
@@ -360,6 +364,13 @@ bool tryMove(int dx, int dy){
                 spawnText(nx, ny, "DROP!", C(0,255,0));
             }
             giveXP();
+        } else {
+            char kbuf[56];
+            if(crit) sprintf(kbuf, "CRIT! %s hit for %d (HP:%d left)",
+                sp[enemies[i].type].name, dmg, enemies[i].hp);
+            else     sprintf(kbuf, "%s hit for %d (HP:%d left)",
+                sp[enemies[i].type].name, dmg, enemies[i].hp);
+            addMsg(kbuf);
         }
         return true;
     }
@@ -404,6 +415,9 @@ void moveEnemies(){
             if(pshield > 0){
                 pshield--;
                 spawnText(px, py, "BLOCKED!", C(0,200,255));
+                char sbuf[56];
+                sprintf(sbuf, "Shield blocked %s's attack!", sp[enemies[i].type].name);
+                addMsg(sbuf);
                 screen_shake=2;
                 continue;
             }
@@ -420,6 +434,14 @@ void moveEnemies(){
                 int steal = max(1, dmg/2);
                 enemies[i].hp = min(enemies[i].hp+steal, enemies[i].maxhp);
                 spawnText(enemies[i].x, enemies[i].y, "DRAIN!", C(200,0,150));
+                char vbuf[56];
+                sprintf(vbuf, "Vampire drained %d HP! Your HP:%d/%d", dmg, php, phmax);
+                addMsg(vbuf);
+            } else {
+                char abuf[56];
+                sprintf(abuf, "%s hit you for %d! HP:%d/%d",
+                    sp[enemies[i].type].name, dmg, php, phmax);
+                addMsg(abuf);
             }
 
             if(php<=0){ php=0; pgameover=true; }
@@ -433,7 +455,7 @@ void moveEnemies(){
 }
 
 // ───────────────────────────────────────────
-//  魔法①: ハイパービーム  [Z]  CD:6
+//  魔法①: ハイパービーム  [Z]  CD:3
 // ───────────────────────────────────────────
 void castBeam(){
     const int ddx[]={1,0,-1,0}, ddy[]={0,-1,0,1};
@@ -453,20 +475,27 @@ void castBeam(){
 
         for(int i=0;i<nenm;++i){
             if(!enemies[i].alive||enemies[i].x!=tx||enemies[i].y!=ty) continue;
-            int dmg = 8 + plevel*2;
+            int dmg = 8 + plevel;
             enemies[i].hp -= dmg;
+            spawnExplosion(tx, ty, 2, C(255,255,0), C(200,50,0));
             char buf[16]; sprintf(buf, "-%d", dmg);
             spawnText(tx, ty, buf, C(0,255,255));
-            spawnExplosion(tx, ty, 2, C(255,255,0), C(200,50,0));
             hit=true;
             if(enemies[i].hp<=0){
                 enemies[i].alive=false;
                 spawnExplosion(tx, ty, 3, C(255,0,0), C(100,0,0));
+                char mbuf[56];
+                sprintf(mbuf, "Beam: %s hit for %d -> KILLED!", sp[enemies[i].type].name, dmg);
+                addMsg(mbuf);
                 giveXP();
+            } else {
+                char mbuf[56];
+                sprintf(mbuf, "Beam: %s hit for %d (HP:%d left)", sp[enemies[i].type].name, dmg, enemies[i].hp);
+                addMsg(mbuf);
             }
         }
     }
-    addMsg(hit ? "HYPER BEAM HITS!" : "HYPER BEAM FIRES!");
+    if(!hit) addMsg("Beam: missed!");
 }
 
 // ───────────────────────────────────────────
@@ -484,10 +513,12 @@ void castChain(){
     screen_shake=15;
     bool hit[MAX_ENEMIES]={};
     int cur=first;
+    int chain_count=0, total_dmg=0;
 
     for(int c=0;c<8&&cur>=0;++c){
         hit[cur]=true;
-        int dmg = 5+c*1;
+        int dmg = 5+c*2;
+        total_dmg += dmg;
         enemies[cur].hp -= dmg;
         int etx=enemies[cur].x, ety=enemies[cur].y;
         spawnExplosion(etx, ety, 2, C(255,255,255), C(0,150,255));
@@ -498,6 +529,7 @@ void castChain(){
             spawnExplosion(etx, ety, 3, C(255,0,0), C(100,0,0));
             giveXP();
         }
+        chain_count++;
         int next=-1; float nb=999;
         for(int j=0;j<nenm;++j){
             if(!enemies[j].alive||hit[j]) continue;
@@ -507,11 +539,13 @@ void castChain(){
         }
         cur=next;
     }
-    addMsg("MEGA CHAIN LIGHTNING!");
+    char mbuf[56];
+    sprintf(mbuf, "Chain: %d targets, %d total dmg!", chain_count, total_dmg);
+    addMsg(mbuf);
 }
 
 // ───────────────────────────────────────────
-//  魔法③: ファイアボール AOE  [C]  CD:3
+//  魔法③: ファイアボール AOE  [C]  CD:10
 // ───────────────────────────────────────────
 void castFireball(){
     const int ddx[]={1,0,-1,0}, ddy[]={0,-1,0,1};
@@ -527,12 +561,13 @@ void castFireball(){
     spawnExplosion(cx, cy, 2, C(255,255,0), C(255,50,0));
     spawnText(cx, cy, "FIREBALL!", C(255,100,0));
 
-    int hits=0;
+    int hits=0, total_dmg=0;
     for(int i=0;i<nenm;++i){
         if(!enemies[i].alive) continue;
         int ex=enemies[i].x-cx, ey=enemies[i].y-cy;
-        if(ex*ex+ey*ey <= 9){   // 半径3
-            int dmg = 2 + plevel*2;
+        if(ex*ex+ey*ey <= 9){
+            int dmg = 6 + plevel*2;
+            total_dmg += dmg;
             enemies[i].hp -= dmg;
             char buf[16]; sprintf(buf, "-%d", dmg);
             spawnText(enemies[i].x, enemies[i].y, buf, C(255,100,0));
@@ -544,9 +579,10 @@ void castFireball(){
             hits++;
         }
     }
-    char mbuf[48];
-    sprintf(mbuf, "FIREBALL! %d ENEMIES HIT!", hits);
-    addMsg(hits>0 ? mbuf : "FIREBALL! (MISS)");
+    char mbuf[56];
+    if(hits>0) sprintf(mbuf, "Fireball: %d hits, %d dmg each, %d total!", hits, 6+plevel*2, total_dmg);
+    else       sprintf(mbuf, "Fireball: missed!");
+    addMsg(mbuf);
 }
 
 // ───────────────────────────────────────────
@@ -558,17 +594,17 @@ void castFrostNova(){
     spawnExplosion(px, py, 4, C(150,200,255), C(0,100,200));
     spawnText(px, py, "FROST NOVA!", C(150,200,255));
 
-    int hits=0;
+    int hits=0, total_dmg=0;
     for(int i=0;i<nenm;++i){
         if(!enemies[i].alive) continue;
         int ex=enemies[i].x-px, ey=enemies[i].y-py;
-        if(ex*ex+ey*ey <= 16){  // 半径4
+        if(ex*ex+ey*ey <= 16){
             int dmg = 4 + plevel;
+            total_dmg += dmg;
             enemies[i].hp -= dmg;
             char buf[16]; sprintf(buf, "-%d", dmg);
             spawnText(enemies[i].x, enemies[i].y, buf, C(150,200,255));
 
-            // 吹き飛ばし
             int npx2 = enemies[i].x + (ex>0?1:ex<0?-1:0);
             int npy2 = enemies[i].y + (ey>0?1:ey<0?-1:0);
             if(npx2>=0&&npx2<MAP_W&&npy2>=0&&npy2<MAP_H&&tmap[npy2][npx2]!=T_WALL){
@@ -576,16 +612,16 @@ void castFrostNova(){
             }
             if(enemies[i].hp<=0){
                 enemies[i].alive=false;
-                spawnExplosion(enemies[i].x, enemies[i].y, 2,
-                               C(200,200,255), C(0,50,150));
+                spawnExplosion(enemies[i].x, enemies[i].y, 2, C(200,200,255), C(0,50,150));
                 giveXP();
             }
             hits++;
         }
     }
-    char mbuf[48];
-    sprintf(mbuf, "FROST NOVA! %d FROZEN!", hits);
-    addMsg(hits>0 ? mbuf : "FROST NOVA! (MISS)");
+    char mbuf[56];
+    if(hits>0) sprintf(mbuf, "Frost Nova: %d frozen, %d dmg+knockback!", hits, 4+plevel);
+    else       sprintf(mbuf, "Frost Nova: missed!");
+    addMsg(mbuf);
 }
 
 // ───────────────────────────────────────────
@@ -844,85 +880,133 @@ void drawMap(){
 // ───────────────────────────────────────────
 //  描画: サイドパネル
 // ───────────────────────────────────────────
+// ───────────────────────────────────────────
+//  描画: サイドパネル
+// ───────────────────────────────────────────
 void drawPanel(){
-    w.drawRect(PANEL_X, 0, w.width, w.height, C(0,0,0));
-    w.drawRect(PANEL_X-2, 0, PANEL_X-1, VIEW_ROWS*CELL_H, C(255,0,255));
+    // CW=6, CH=12 グリッドに完全整列
+    const int CW = CELL_W;   // 6
+    const int CH = CELL_H;   // 12
+    const int PX = PANEL_X;  // パネル左端X
 
-    int x=PANEL_X, y=0;
-    auto pline=[&](const char* s, uint16_t col){
-        w.setTextCursor(x,y); w.text_color=col; w.print(s); y+=CELL_H;
-    };
-    const int LW=42;
-    auto pstat=[&](const char* label, int val, uint16_t lc, uint16_t vc){
-        w.setTextCursor(x,y); w.text_color=lc; w.print(label);
-        w.setTextCursor(x+LW,y); w.text_color=vc; w.print(val); y+=CELL_H;
-    };
-    auto pstat2=[&](const char* label, int a, int b, uint16_t lc, uint16_t vc){
-        w.setTextCursor(x,y); w.text_color=lc; w.print(label);
-        w.setTextCursor(x+LW,y); w.text_color=vc;
-        w.print(a); w.print("/"); w.print(b); y+=CELL_H;
-    };
-    auto pspell=[&](const char* key, const char* name, int cd, uint16_t rc){
-        w.setTextCursor(x,y);
-        w.text_color=(cd==0)?rc:C(80,80,80);
-        w.print(key); w.print(name);
-        w.setTextCursor(x+LW,y);
-        w.text_color=(cd==0)?C(0,255,0):C(255,0,0);
-        if(cd>0){ w.print(cd); w.print("t"); } else w.print("RDY");
-        y+=CELL_H;
-    };
+    // ラベル列・値列の定義（CW倍数）
+    const int COL_LBL = PX;          // ラベル開始
+    const int COL_VAL = PX + 5*CW;   // 値列 (5文字=30px)
+    const int COL_RDY = PX + 11*CW;  // RDY列 (11文字=66px)
 
-    pline("NEON CORE", C(0,255,255));
-    pstat("Floor:", pfloor, C(255,100,255), C(255,255,255));
-    y+=4;
-    pline("PLAYER", C(0,255,100));
+    w.drawRect(PX, 0, w.width, w.height, C(0,0,0));
+    // 境界線（CW整列）
+    w.drawRect(PX-2, 0, PX-1, VIEW_ROWS*CH, C(255,0,255));
 
-    // HP バー
+    int y = 0;
+
+    // ── ヘッダー ──
+    w.setTextCursor(COL_LBL, y); w.text_color=C(0,255,255); w.print("NEON CORE"); y+=CH;
+
+    // Floor
+    w.setTextCursor(COL_LBL, y); w.text_color=C(255,100,255); w.print("Floor");
+    w.setTextCursor(COL_VAL, y); w.text_color=C(255,255,255); w.print(pfloor); y+=CH;
+
+    y+=CH; // 空行1行
+
+    // ── PLAYER ──
+    w.setTextCursor(COL_LBL, y); w.text_color=C(0,255,100); w.print("PLAYER"); y+=CH;
+
+    // HP バー（幅 = 16*CW = 96px, 高さ = 8px → y+8でバー, +4余白）
     {
-        int bw=96, bh=8;
-        w.drawRect(x, y, x+bw, y+bh, C(50,0,0));
-        int filled=(int)((float)php/phmax*bw);
+        const int BW = 16*CW; // 96px
+        const int BH = 8;
+        w.drawRect(COL_LBL, y, COL_LBL+BW, y+BH, C(50,0,0));
+        int filled = (int)((float)php/phmax * BW);
         uint16_t hcol = php>phmax/2 ? C(0,255,100) :
                         php>phmax/4 ? C(255,200,0)  : C(255,0,0);
         if(php<=phmax/4 && (millis()/100)%2==0) hcol=C(255,255,255);
-        w.drawRect(x, y, x+filled, y+bh, hcol);
-        y+=10;
+        if(filled>0) w.drawRect(COL_LBL, y, COL_LBL+filled, y+BH, hcol);
+        y += BH + 4; // 8+4=12 → 次のテキスト行と揃う
     }
-    pstat2("HP:", php, phmax, C(255,255,255), C(255,255,255));
-    pstat("Lv:",  plevel,       C(255,255,255), C(255,255,0));
-    pstat2("XP:", pxp, pxp_next,C(255,255,255), C(0,255,255));
 
-    y+=4;
+    // HP / Lv / XP
+    w.setTextCursor(COL_LBL, y); w.text_color=C(200,200,200); w.print("HP");
+    w.setTextCursor(COL_VAL, y); w.text_color=C(255,255,255);
+    w.print(php); w.print("/"); w.print(phmax); y+=CH;
 
-    // ─ アクティブバフ ─
+    w.setTextCursor(COL_LBL, y); w.text_color=C(200,200,200); w.print("Lv");
+    w.setTextCursor(COL_VAL, y); w.text_color=C(255,255,0); w.print(plevel); y+=CH;
+
+    w.setTextCursor(COL_LBL, y); w.text_color=C(200,200,200); w.print("XP");
+    w.setTextCursor(COL_VAL, y); w.text_color=C(0,255,255);
+    w.print(pxp); w.print("/"); w.print(pxp_next); y+=CH;
+
+    y+=CH; // 空行
+
+    // ── アクティブバフ ──
     if(patk_bonus>0){
-        w.setTextCursor(x,y); w.text_color=C(255,200,0);
+        w.setTextCursor(COL_LBL, y); w.text_color=C(255,200,0);
         w.print(")ATK+"); w.print(patk_bonus);
-        w.setTextCursor(x+LW,y); w.text_color=C(200,150,0);
-        w.print(patk_timer); w.print("t");
-        y+=CELL_H;
+        w.setTextCursor(COL_RDY, y); w.text_color=C(200,150,0);
+        w.print(patk_timer); w.print("t"); y+=CH;
     }
     if(pshield>0){
-        w.setTextCursor(x,y); w.text_color=C(0,200,255);
-        w.print("]SHIELD"); w.setTextCursor(x+LW,y); w.print(pshield);
-        y+=CELL_H;
+        w.setTextCursor(COL_LBL, y); w.text_color=C(0,200,255);
+        w.print("]SHIELD");
+        w.setTextCursor(COL_RDY, y); w.text_color=C(0,200,255);
+        w.print(pshield); w.print("x"); y+=CH;
     }
 
-    y+=4;
-    pline("SPELLS", C(255,100,255));
-    pspell("Z:", "Beam  ", spell_cd[0], C(255,255,0));
-    pspell("X:", "Chain ", spell_cd[1], C(0,255,255));
-    pspell("C:", "Firebll", spell_cd[2], C(255,100,0));
-    pspell("V:", "Frost ", spell_cd[3], C(150,200,255));
+    y+=CH; // 空行
 
-    y+=6;
-    // ─ 凡例 ─
-    pline("MAP KEY", C(120,120,120));
-    w.setTextCursor(x,y); w.text_color=C(80,80,80); w.print("e=You  >=Stairs");
-    y+=CELL_H;
-    w.setTextCursor(x,y); w.text_color=C(0,200,80); w.print("!=HP ?=MP ):Atk ]=Shld");
-    y+=CELL_H;
-    w.setTextCursor(x,y); w.text_color=C(150,150,150); w.print("WASD:move hover:info");
+    // ── MAP KEY ──
+    w.setTextCursor(COL_LBL, y); w.text_color=C(120,120,120); w.print("MAP KEY"); y+=CH;
+    w.setTextCursor(COL_LBL, y); w.text_color=C(80,80,80);
+    w.print("e=You  >=Stairs"); y+=CH;
+    w.setTextCursor(COL_LBL, y); w.text_color=C(0,180,80);
+    w.print("!=HP  ?=MP  )=Atk"); y+=CH;
+    w.setTextCursor(COL_LBL, y); w.text_color=C(0,180,80);
+    w.print("]=Shld"); y+=CH;
+    w.setTextCursor(COL_LBL, y); w.text_color=C(150,150,150);
+    w.print("WASD:move"); y+=CH;
+    w.setTextCursor(COL_LBL, y); w.text_color=C(100,100,200);
+    w.print("Z/X/C/V"); y+=CH;
+    w.setTextCursor(COL_LBL, y);
+    w.print("RClk:sel"); y+=CH;
+    w.setTextCursor(COL_LBL, y);
+    w.print("LClk:use"); y+=CH;
+
+    y+=CH; // 空行
+
+    // ── SPELLS ──
+    w.setTextCursor(COL_LBL, y); w.text_color=C(255,100,255); w.print("SPELLS"); y+=CH;
+
+    // pspell: arrow(1CW) key(2CW) name(7CW) → RDY at COL_RDY
+    const char* skeys[] = {"Z","X","C","V"};
+    const char* snames[]= {"Beam   ","Chain  ","Fireball","Frost  "};
+    const uint16_t scols[]={C(255,255,0),C(0,255,255),C(255,100,0),C(150,200,255)};
+
+    for(int s=0;s<4;++s){
+        bool sel=(s==selected_spell);
+        if(sel){
+            w.drawRect(COL_LBL, y, COL_LBL+16*CW, y+CH, C(30,0,60));
+            w.drawLine(COL_LBL, y,    COL_LBL+16*CW, y,    scols[s]);
+            w.drawLine(COL_LBL, y+CH-1, COL_LBL+16*CW, y+CH-1, scols[s]);
+        }
+        // arrow  (col 0, 1文字)
+        w.setTextCursor(COL_LBL, y);
+        w.text_color = sel ? scols[s] : C(40,40,40);
+        w.print(sel ? ">" : " ");
+        // key    (col 1, 1文字)
+        w.setTextCursor(COL_LBL+1*CW, y);
+        w.text_color = spell_cd[s]==0 ? scols[s] : C(80,80,80);
+        w.print(skeys[s]);
+        // name   (col 2〜8, 8文字)
+        w.setTextCursor(COL_LBL+3*CW, y);
+        w.print(snames[s]);
+        // RDY/cd (col 11)
+        w.setTextCursor(COL_RDY, y);
+        w.text_color = spell_cd[s]==0 ? C(0,255,0) : C(255,80,80);
+        if(spell_cd[s]>0){ w.print(spell_cd[s]); w.print("t"); }
+        else w.print("RDY");
+        y+=CH;
+    }
 }
 
 // ───────────────────────────────────────────
@@ -949,6 +1033,7 @@ void game(){
         patk_bonus=0; patk_timer=0; pshield=0;
         pgameover=false; input_cd=0;
         for(int s=0;s<4;++s) spell_cd[s]=0;
+        selected_spell=0;
         pdir=0; screen_shake=0; level_up_timer=0; floor_fade=255; damage_flash=0;
         for(int i=0;i<MAX_DMG_TXT;++i) dtxts[i].life=0;
         generateFloor(); computeFOV(); pinit=false;
@@ -990,29 +1075,33 @@ void game(){
                 if(!items[i].active||items[i].x!=px||items[i].y!=py) continue;
                 items[i].active=false;
                 switch(items[i].type){
-                    case ITEM_HEAL:
+                    case ITEM_HEAL: {
+                        int before=php;
                         php = min(php+10, phmax);
                         spawnExplosion(px,py,2,C(0,255,0),C(0,100,0));
                         spawnText(px,py,"HEAL +10",C(0,255,0));
-                        addMsg("HEALTH RESTORED! +10 HP");
+                        char hbuf[56];
+                        sprintf(hbuf, "Health Potion: HP %d -> %d (+%d)", before, php, php-before);
+                        addMsg(hbuf);
                         break;
+                    }
                     case ITEM_MANA:
                         for(int s=0;s<4;++s) spell_cd[s]=0;
                         spawnExplosion(px,py,2,C(100,150,255),C(0,50,200));
                         spawnText(px,py,"MANA ORB!",C(100,150,255));
-                        addMsg("ALL SPELLS RECHARGED!");
+                        addMsg("Mana Orb: all spell CDs reset!");
                         break;
                     case ITEM_WEAPON:
                         patk_bonus=3; patk_timer=8;
                         spawnExplosion(px,py,2,C(255,200,0),C(100,50,0));
                         spawnText(px,py,"ATK+3!",C(255,200,0));
-                        addMsg("POWER BLADE! ATK+3 for 8 turns");
+                        addMsg("Power Blade: ATK+3 for 8 turns!");
                         break;
                     case ITEM_SHIELD:
                         pshield++;
                         spawnExplosion(px,py,2,C(0,200,255),C(0,50,100));
                         spawnText(px,py,"SHIELD UP!",C(0,200,255));
-                        addMsg("FORCE SHIELD active! Blocks 1 hit");
+                        addMsg("Force Shield: next hit will be blocked!");
                         break;
                 }
                 screen_shake=3;
@@ -1024,21 +1113,49 @@ void game(){
         if(tmap[py][px]==T_STAIRS){
             pfloor++;
             php=min(php+4, phmax);
-            addMsg("DESCENDING TO NEXT LAYER...");
+            char fbuf[56];
+            sprintf(fbuf, "Descended to B%d. HP+4 -> %d/%d", pfloor, php, phmax);
+            addMsg(fbuf);
             generateFloor();
         }
         computeFOV();
     }
 
-    // ─ 魔法入力（4種） ─
+    // ─ 右クリック: 次の魔法を選択（サイクル）─
+    if(E512W3DInput::getButtonDown(2)){
+        selected_spell = (selected_spell + 1) % 4;
+        const char* names[4]={"BEAM","CHAIN","FIREBALL","FROST NOVA"};
+        char mbuf[32]; sprintf(mbuf,"SPELL: %s", names[selected_spell]);
+        addMsg(mbuf);
+    }
+
+    // ─ 左クリック: 選択魔法を発動 ─
+    if(E512W3DInput::getButtonDown(0)){
+        if(spell_cd[selected_spell] == 0){
+            switch(selected_spell){
+                case 0: spell_cd[0]=3;  castBeam();      break;
+                case 1: spell_cd[1]=16; castChain();     break;
+                case 2: spell_cd[2]=10; castFireball();  break;
+                case 3: spell_cd[3]=12; castFrostNova(); break;
+            }
+            moveEnemies(); consumeTurn(); computeFOV();
+        } else {
+            const char* names[4]={"BEAM","CHAIN","FIREBALL","FROST NOVA"};
+            char mbuf[40]; sprintf(mbuf,"%s NOT READY! (%dt)",
+                names[selected_spell], spell_cd[selected_spell]);
+            addMsg(mbuf);
+        }
+    }
+
+    // ─ 魔法キー入力（4種） ─
     if(E512W3DInput::getKey('Z') && spell_cd[0]==0){
-        spell_cd[0]=6;  castBeam();      moveEnemies(); consumeTurn(); computeFOV();
+        spell_cd[0]=3;  castBeam();      moveEnemies(); consumeTurn(); computeFOV();
     }
     if(E512W3DInput::getKey('X') && spell_cd[1]==0){
         spell_cd[1]=16; castChain();     moveEnemies(); consumeTurn(); computeFOV();
     }
     if(E512W3DInput::getKey('C') && spell_cd[2]==0){
-        spell_cd[2]=3; castFireball();  moveEnemies(); consumeTurn(); computeFOV();
+        spell_cd[2]=10; castFireball();  moveEnemies(); consumeTurn(); computeFOV();
     }
     if(E512W3DInput::getKey('V') && spell_cd[3]==0){
         spell_cd[3]=12; castFrostNova(); moveEnemies(); consumeTurn(); computeFOV();
@@ -1059,11 +1176,11 @@ void game(){
         damage_flash-=10;
     }
 
-    // ─ フロアフェードイン ─
+    // ─ フロアフェードイン（シンプルな暗転） ─
     if(floor_fade>0){
-        for(int y=0;y<w.height;y+=4)
-            w.drawRect(0,y,w.width,y+2,color565(floor_fade,floor_fade,floor_fade));
-        floor_fade-=15;
+        uint16_t fc = color565(floor_fade/4, floor_fade/4, floor_fade/4);
+        w.drawRect(0, 0, w.width, w.height, fc);
+        floor_fade -= 20;
     }
 
     // ─ レベルアップ演出 ─

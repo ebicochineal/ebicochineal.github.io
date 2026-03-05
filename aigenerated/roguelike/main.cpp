@@ -879,9 +879,6 @@ void drawMap(){
 // ───────────────────────────────────────────
 //  描画: サイドパネル
 // ───────────────────────────────────────────
-// ───────────────────────────────────────────
-//  描画: サイドパネル
-// ───────────────────────────────────────────
 void drawPanel(){
     // CW=6, CH=12 グリッドに完全整列
     const int CW = CELL_W;   // 6
@@ -996,7 +993,7 @@ void drawPanel(){
         w.setTextCursor(COL_LBL+1*CW, y);
         w.text_color = spell_cd[s]==0 ? scols[s] : C(80,80,80);
         w.print(skeys[s]);
-        // name   (col 2〜8, 8文字)
+        // name   (col 3〜, 7文字)
         w.setTextCursor(COL_LBL+3*CW, y);
         w.print(snames[s]);
         // RDY/cd (col 11)

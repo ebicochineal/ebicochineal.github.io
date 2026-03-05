@@ -7,7 +7,6 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 #include "E512W3D.hpp"
-#include "tile80x80.hpp"
 
 E512W3DWindow w;
 Object3D camera;

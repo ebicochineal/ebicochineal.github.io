@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | ebicochineal</title>
+    <style>
+        :root {
+            --main-red: #b71c1c; /* コチニールレッド */
+            --bg-color: #fafafa;
+            --text-color: #333;
+            --accent-orange: #ff8f00; 
+            --accent-yellow: #fdd835;
+            --accent-purple: #4a148c;
+        }
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: var(--main-red);
+            color: white;
+            padding: 50px 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .profile-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: -60px;
+        }
+        h1 { margin: 0; font-size: 2.5em; letter-spacing: 2px; }
+        h2 { border-bottom: 2px solid var(--main-red); padding-bottom: 8px; margin-top: 40px; color: var(--main-red); }
+        h3 { color: #555; margin-bottom: 10px; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .stat-item {
+            padding: 20px;
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+        .orange { background-color: var(--accent-orange); }
+        .yellow { background-color: #d4af37; }
+        .purple { background-color: var(--accent-purple); }
+        .stat-value { font-size: 1.6em; font-weight: bold; display: block; }
+        .stat-label { font-size: 0.85em; opacity: 0.9; }
+        .stat-sub { font-size: 0.75em; display: block; margin-top: 5px; opacity: 0.8; }
+
+        .achievement-list { list-style: none; padding: 0; }
+        .achievement-list li {
+            background: #fff;
+            margin-bottom: 12px;
+            padding: 15px;
+            border-left: 5px solid var(--main-red);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .achievement-list li span { font-weight: bold; color: #000; }
+
+        .project-item {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #ccc;
+        }
+        .project-item:last-child { border-bottom: none; }
+        .project-title { font-weight: bold; font-size: 1.2em; color: var(--main-red); }
+        
+        .links { margin-bottom: 20px; text-align: center; }
+        .links a {
+            display: inline-block;
+            margin: 5px 10px;
+            color: var(--main-red);
+            text-decoration: none;
+            font-weight: bold;
+            border: 1px solid var(--main-red);
+            padding: 5px 15px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        .links a:hover { background: var(--main-red); color: white; }
+        .disclaimer { font-size: 0.8em; color: #888; text-align: right; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Portfolio | ebicochineal</h1>
+    このポートフォリオはAIで作成しました。
+</header>
+
+<div class="container">
+    <div class="profile-card">
+        <div class="links">
+            <a href="https://atcoder.jp/users/ebicochineal?contestType=heuristic" target="_blank">AtCoder</a>
+            <a href="https://www.codingame.com/profile/a79a37f66f7439f3b94bb35f30b329bd8000942" target="_blank">CodinGame</a>
+            <a href="https://github.com/ebicochineal" target="_blank">GitHub</a>
+            <a href="https://ebicochineal.booth.pm/" target="_blank">BOOTH</a>
+        </div>
+
+        <h2>競技プログラミング実績 (最高到達ランク)</h2>
+        <div class="stats-grid">
+            <div class="stat-item orange">
+                <span class="stat-label">AtCoder Heuristic</span>
+                <span class="stat-value">橙 (Orange)</span>
+                <p style="font-size: 0.8em; margin-top: 10px; text-align: left;">
+                    日本最大級の競技プログラミングサイトにおいて、橙に到達。これは全参加者のうち「上位約1%」のみが到達可能な水準です。制限時間内に、正解のない複雑な最適化問題に対して実用的な近似解を導き出す、圧倒的な「地頭の良さ」と「実装スピード」を客観的に示しています。
+                </p>
+            </div>
+
+            <div class="stat-item purple">
+                <span class="stat-label">CodinGame</span>
+                <span class="stat-value">Grand Master</span>
+                <p style="font-size: 0.8em; margin-top: 10px; text-align: left;">
+                    世界中のエンジニアがAIの強さを競うプラットフォーム。全アクティブユーザーのうち「世界順位上位0.1%」圏内を維持。複雑なゲームAI構築において、世界水準のアルゴリズム設計能力を保持していることを証明しています。
+                </p>
+            </div>
+
+            <div class="stat-item yellow">
+                <span class="stat-label">Topcoder Marathon Match</span>
+                <span class="stat-value">黄 (Yellow)</span>
+                <p style="font-size: 0.8em; margin-top: 10px; text-align: left;">
+                    世界で最も歴史ある競技プログラミングコンテスト。数日〜数週間に及ぶ長期の最適化問題において、妥協のない数学的アプローチと、自力で正解を構築する粘り強い改善能力を保持していることを示します。
+                </p>
+            </div>
+        </div>
+        <p class="disclaimer">※ランキングおよびレートはコンテスト参加状況により変動します。</p>
+
+        <h2>主要入賞・選抜実績</h2>
+        <ul class="achievement-list">
+            <li><span>ヤマト運輸プログラミングコンテスト2019</span>：2位</li>
+            <li><span>第4回 Asprova プログラミングコンテスト</span>：4位</li>
+            <li><span>トヨタ自動車 プログラミングコンテスト2022 (AHC015)</span>：9位</li>
+            <li><span>トヨタ自動車 実課題プログラミングコンテスト 2023 Spring</span>：9位</li>
+            <li><span>AtCoder Heuristic Contest 003</span>：14位</li>
+            <li><span>AtCoder Heuristic Contest 001</span>：17位</li>
+            <li><span>第9回 Asprova プログラミングコンテスト</span>：17位</li>
+            <li><span>第4回 RECRUIT 日本橋ハーフマラソン 予選</span>：19位</li>
+            <li><span>CodinGame Spring Challenge 2022</span>：75位 (Legend)</li>
+            <li><span>CodinGame Spring Challenge 2021</span>：131位 (Legend)</li>
+            <li><span>CodinGame Winter Challenge 2026</span>：137位 (Legend)</li>
+            <li><span>CodinGame Fall Challenge 2020</span>：92位 (Gold)</li>
+            <li><span>CodinGame BOTTERS OF THE GALAXY</span>：93位 (Legend)</li>
+        </ul>
+
+        <h2>開発プロジェクト・制作物</h2>
+        
+        <div class="project-item">
+            <div class="project-title">E512W3D (Software Rendering System)</div>
+            <p>GPUや外部ライブラリに依存せず、計算幾何学から描画パイプラインのすべてをフルスクラッチで構築した3Dレンダリングシステム。
+Raspberry Pi PicoやM5StickCといったリソース制限の極めて厳しいマイコン環境でも動作するほどの軽量化・最適化を実現しています。また、Emscriptenを用いることでウェブアプリ化（WebAssembly）にも対応。プラットフォームを選ばない「自作描画エンジン」としての高い汎用性と実装力を証明しています。</p>
+            <a href="https://github.com/ebicochineal/E512W3D" target="_blank">GitHub Repository</a>
+        </div>
+
+        <div class="project-item">
+            <div class="project-title">VRChat / BOOTH ワールドギミック制作</div>
+            <p>BOOTHにてUnityを用いたミニゲームやワールド用ギミックを制作・販売。ゲームロジックの実装から3Dモデルの統合まで幅広く手掛けています。</p>
+            <a href="https://ebicochineal.booth.pm/" target="_blank">BOOTH Shop</a>
+        </div>
+
+        <h2>技術背景とアイデンティティ</h2>
+        <div class="project-item">
+            <p>
+                私は40代、就業経験なし（未経験）、20年以上のひきこもり生活という背景を持っています。しかし、この環境は私にとって、「好きなことに異常なまでの集中力を注ぎ込める広大な時間」でした。
+            </p>
+            <p>
+                中学卒業後、漢字も数学もプログラミングも、すべて「動くものを作る」「問題を解決する」という必要性の中から独学で習得しました。既存の教育の型にはまらない、「本質を理解し、ゼロからシステムを再構築する力」が私の最大の武器です。
+            </p>
+            <p>
+                社会的な「普通」の枠外から、コードという共通言語だけを武器に、世界トップレベルのエンジニアたちと競い合い、結果を出し続けている事実が、私の実力を証明しています。
+            </p>
+            <div class="skill-list">
+                主要言語： C++, C#, Python<br>
+                得意分野： アルゴリズム最適化, ヒューリスティック(近似解法), ゲームAI, ソフトウェア構造
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
